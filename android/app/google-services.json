@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "682530565593",
+    "project_id": "mahaweliauthoritygroupproject",
+    "storage_bucket": "mahaweliauthoritygroupproject.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682530565593:android:9fbf9607954543c90ffdc8",
+        "android_client_info": {
+          "package_name": "com.example.mahaweli_admin_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhf8eWf9S4NVrExsD1mp4WbCowPMlaisk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
