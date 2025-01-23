@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'Flutter Demo',
-      home: Placeholder(),
+      home: BottomNavigationBarExample(),
     );
   }
 }
