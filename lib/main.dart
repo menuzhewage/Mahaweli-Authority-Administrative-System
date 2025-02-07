@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
+import 'package:mahaweli_admin_system/screens/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,8 +11,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      home: BottomNavigationBarExample(),
+      home: Login(),
     );
   }
 }
