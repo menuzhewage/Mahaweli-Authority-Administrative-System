@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mahaweli_admin_system/screens/homepage.dart';
 import 'package:mahaweli_admin_system/screens/login.dart';
 
 void main() {
@@ -10,10 +11,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      home: Login(),
+      home: Homepage(),
     );
   }
 }
