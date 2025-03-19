@@ -1,0 +1,65 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "mahaweliauthoritygroupproject",
+          "appId": "1:682530565593:android:9fbf9607954543c90ffdc8",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "mahaweliauthoritygroupproject",
+          "appId": "1:682530565593:ios:0209536f02891dc00ffdc8",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "mahaweliauthoritygroupproject",
+          "appId": "1:682530565593:ios:0209536f02891dc00ffdc8",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "mahaweliauthoritygroupproject",
+          "configurations": {
+            "android": "1:682530565593:android:9fbf9607954543c90ffdc8",
+            "ios": "1:682530565593:ios:0209536f02891dc00ffdc8",
+            "macos": "1:682530565593:ios:0209536f02891dc00ffdc8",
+            "web": "1:682530565593:web:49a321e4bb4b1a920ffdc8",
+            "windows": "1:682530565593:web:e24a862ab1ff9bec0ffdc8"
+          }
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "database": {
+    "rules": "database.rules.json"
+  }
+}
