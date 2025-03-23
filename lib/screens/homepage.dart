@@ -75,7 +75,7 @@ class _HomepageState extends State<Homepage> {
                             padding: EdgeInsets.all(8.0),
                             child: Center(
                               child: Text(
-                                'Admin dashboard',
+                                'Personal File Handler dashboard',
                                 style: TextStyle(
                                   fontSize: 18,
                                 ),
@@ -126,7 +126,7 @@ class _HomepageState extends State<Homepage> {
                                   ))),
                           onPressed: () {},
                           child: const Text(
-                            'Request Management',
+                            'Notifications Management',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
