@@ -69,9 +69,9 @@ class NavigationPanel extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          ElevatedButton(onPressed: () {}, child: Text('Admin Dashboard')),
+          ElevatedButton(onPressed: () {}, child: Text('Personal File Handler Dashboard')),
           ElevatedButton(onPressed: () {}, child: Text('Employee Profile View')),
-          ElevatedButton(onPressed: () {}, child: Text('Request Management')),
+          ElevatedButton(onPressed: () {}, child: Text('Notification Management')),
           ElevatedButton(onPressed: () {}, child: Text('Apply Leave')),
           Spacer(),
           Text('Chat'),
