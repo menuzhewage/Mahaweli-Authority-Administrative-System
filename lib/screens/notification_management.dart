@@ -6,5 +6,21 @@ import 'package:mahaweli_admin_system/components/build_media_section_card.dart';
 
 class NotificationManagement extends StatefulWidget {
   const NotificationManagement({super.key});
-  
+
+  @override
+  _NotificationManagementState createState() => _NotificationManagementState();
+}
+
+class _NotificationManagementState extends State<NotificationManagement> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Notification Management'),
+      ),
+      body: const Center(
+        child: Text('Notification Management Screen'),
+      ),
+    );
+  }
 }

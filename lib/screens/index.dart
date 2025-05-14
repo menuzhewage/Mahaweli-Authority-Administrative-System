@@ -70,7 +70,6 @@ class NavigationPanel extends StatelessWidget {
       child: Column(
         children: [
           ElevatedButton(onPressed: () {}, child: Text('Dispatch Handler Dashboard')),
-          ElevatedButton(onPressed: () {}, child: Text('Employee Profile View')),
           ElevatedButton(onPressed: () {}, child: Text('Notification Management')),
           ElevatedButton(onPressed: () {}, child: Text('Apply Leave')),
           Spacer(),
