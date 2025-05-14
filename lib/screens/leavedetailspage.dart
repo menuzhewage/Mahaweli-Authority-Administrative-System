@@ -1,50 +1,17 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:mahaweli_admin_system/components/annual_task_card.dart';
 import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
-import 'package:mahaweli_admin_system/components/build_media_section_card.dart';
+import 'package:mahaweli_admin_system/screens/leavehandlerpage.dart';
+import 'package:mahaweli_admin_system/screens/leaveapplypage.dart';
+import 'package:mahaweli_admin_system/components/leave_application_form.dart'; // Import your leave application form
 
-import '../classes/task.dart';
-
-class Leavehandler extends StatefulWidget {
-  const Leavehandler({super.key});
+class Leavedetailspage extends StatefulWidget {
+  const Leavedetailspage({super.key});
 
   @override
-  State<Leavehandler> createState() => _LeavehandlerState();
+  State<Leavedetailspage> createState() => _LeavedetailspageState();
 }
 
-class _LeavehandlerState extends State<Leavehandler> {
-  final List<Task> tasks = [
-    Task(
-      name: 'Task 1',
-      description: 'Description for Task 1',
-      dueDate: '2025-03-01',
-      createdDate: '2025-02-15',
-      imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97',
-    ),
-    Task(
-      name: 'Task 2',
-      description: 'Description for Task 2',
-      dueDate: '2025-03-05',
-      createdDate: '2025-02-16',
-      imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d',
-    ),
-    Task(
-      name: 'Task 3',
-      description: 'Description for Task 3',
-      dueDate: '2025-03-10',
-      createdDate: '2025-02-17',
-      imageUrl: 'https://images.unsplash.com/photo-1494172961521-33799ddd43a5',
-    ),
-    Task(
-      name: 'Task 4',
-      description: 'Description for Task 4',
-      dueDate: '2025-03-15',
-      createdDate: '2025-02-18',
-      imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f',
-    ),
-  ];
-
+class _LeavedetailspageState extends State<Leavedetailspage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,20 +31,30 @@ class _LeavehandlerState extends State<Leavehandler> {
                   width: MediaQuery.sizeOf(context).width * 0.2,
                   child: Column(
                     children: [
-                      Container(
-                        width: MediaQuery.sizeOf(context).width,
-                        child: Card(
-                          color: const Color.fromARGB(255, 228, 228, 228),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Center(
-                              child: Text(
-                                'Leave Handler Dashboard',
-                                style: TextStyle(
-                                  fontSize: 18,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const Leavehandlerpage(),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: MediaQuery.sizeOf(context).width,
+                          child: Card(
+                            color: const Color.fromARGB(255, 228, 228, 228),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Center(
+                                child: Text(
+                                  'Leave Handler Dashboard',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                  ),
                                 ),
                               ),
                             ),
@@ -124,7 +101,14 @@ class _LeavehandlerState extends State<Leavehandler> {
                                     color: Colors.white,
                                     width: 2,
                                   ))),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Leaveapplypage(),
+                              ),
+                            );
+                          },
                           child: const Text('Apply leaves',
                               style: TextStyle(
                                 color: Colors.white,
@@ -177,63 +161,78 @@ class _LeavehandlerState extends State<Leavehandler> {
                 child: Padding(
                   padding: const EdgeInsets.all(40.0),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      CarouselSlider(
-                        options: CarouselOptions(
-                          height: 260.0,
-                          enlargeCenterPage: true,
-                          autoPlay: true,
-                          aspectRatio: 16 / 9,
-                          autoPlayCurve: Curves.fastOutSlowIn,
-                          enableInfiniteScroll: true,
-                          autoPlayAnimationDuration:
-                              const Duration(milliseconds: 800),
-                          viewportFraction: 0.8,
-                        ),
-                        items: tasks
-                            .map((task) => AnnualTaskCard.buildCard(task))
-                            .toList(),
-                      ),
-                      const Divider(),
-                      BuildMediaSectionCard(),
-                      const Spacer(),
-                      const Center(
-                        child: Text(
-                          'Welcome',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Center(
-                        child: Text(
-                          'Need help? Discover what actions you can perform here!',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width * 0.2,
-                        height: 60,
-                        child: Card(
+                      Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
                           color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text('Personal File Handling'),
-                                Text('Request Management')
+                          borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.5),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            const TextField(
+                              decoration: InputDecoration(
+                                labelText: 'Search by Employee ID or Name',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            DataTable(
+                              columns: const [
+                                DataColumn(label: Text('Employee ID')),
+                                DataColumn(label: Text('Name')),
+                                DataColumn(label: Text('Leave Type')),
+                                DataColumn(label: Text('Start Date')),
+                                DataColumn(label: Text('End Date')),
+                              ],
+                              rows: const [
+                                DataRow(cells: [
+                                  DataCell(Text('E001')),
+                                  DataCell(Text('John Doe')),
+                                  DataCell(Text('Annual Leave')),
+                                  DataCell(Text('2025-05-01')),
+                                  DataCell(Text('2025-05-10')),
+                                ]),
+                                DataRow(cells: [
+                                  DataCell(Text('E002')),
+                                  DataCell(Text('Jane Smith')),
+                                  DataCell(Text('Sick Leave')),
+                                  DataCell(Text('2025-05-05')),
+                                  DataCell(Text('2025-05-07')),
+                                ]),
                               ],
                             ),
-                          ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: FloatingActionButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  content: Container(
+                                    width: double.maxFinite,
+                                    child:
+                                        const LeaveApplicationForm(), // Use your existing form
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: const Icon(Icons.add),
                         ),
                       ),
                       Spacer(),
