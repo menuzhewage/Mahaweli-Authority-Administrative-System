@@ -235,7 +235,7 @@ class _DispatchNotificationsState extends State<DispatchNotifications> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          _buildSidebarButton('Notifications', () {}, isActive: true),
+                          _buildSidebarButton('Dispatch Notifications', () {}, isActive: true),
                           const SizedBox(height: 20),
                           _buildSidebarButton('Apply Leave', () {}),
                           const Divider(),
