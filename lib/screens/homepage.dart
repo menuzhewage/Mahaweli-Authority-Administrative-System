@@ -4,6 +4,7 @@ import 'package:mahaweli_admin_system/components/annual_task_card.dart';
 import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
 import 'package:mahaweli_admin_system/components/build_media_section_card.dart';
 import '../classes/task.dart';
+import '../screens/dispatch_notifications.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -84,7 +85,7 @@ class _HomepageState extends State<Homepage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          _buildSidebarButton('Notifications'),
+                          _buildSidebarButton('Dispatch Notifications'),
                           const SizedBox(height: 20),
                           _buildSidebarButton('Apply leaves'),
                           const Divider(),
@@ -352,7 +353,14 @@ class _HomepageState extends State<Homepage> {
             ),
           ),
         ),
-        onPressed: () {},
+        onPressed: () {
+          if (text == 'Dispatch Notifications') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DispatchNotifications()),
+            );
+          }
+        },
         child: Text(
           text,
           style: const TextStyle(
