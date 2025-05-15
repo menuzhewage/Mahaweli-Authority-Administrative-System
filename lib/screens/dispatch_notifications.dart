@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../classes/notification_request.dart';
 import '../components/bottum_navigation_bar.dart';
+import '../components/letter_dispatch_form.dart';
+import 'package:mahaweli_admin_system/screens/homepage.dart';
 
 class DispatchNotifications extends StatefulWidget {
   const DispatchNotifications({super.key});
@@ -40,93 +42,41 @@ class _DispatchNotificationsState extends State<DispatchNotifications> {
   }
 
   void _showAddNotificationDialog() {
-    String? type;
-    String? department;
-    String date = '';
-    String description = '';
-    final _formKey = GlobalKey<FormState>();
+    // For auto-generation, use Internal/External and department from dropdowns, but for the initial dialog, generate a temp ID
+    String tempType = 'Internal';
+    String tempDepartment = 'Land';
+    String today = DateTime.now().toString().split(' ')[0].replaceAll('-', '/');
+    String tempLetterId = _generateLetterId(tempType, tempDepartment, today);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          contentPadding: const EdgeInsets.all(24),
-          content: SizedBox(
-            width: 400,
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Center(
-                    child: Text('NEW LETTER', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Type'),
-                    items: const [
-                      DropdownMenuItem(value: 'Internal', child: Text('Internal')),
-                      DropdownMenuItem(value: 'External', child: Text('External')),
-                    ],
-                    onChanged: (val) => type = val,
-                    validator: (val) => val == null ? 'Select type' : null,
-                  ),
-                  DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Department'),
-                    items: const [
-                      DropdownMenuItem(value: 'Land', child: Text('Land')),
-                      DropdownMenuItem(value: 'Agriculture', child: Text('Agriculture')),
-                      DropdownMenuItem(value: 'Water', child: Text('Water')),
-                    ],
-                    onChanged: (val) => department = val,
-                    validator: (val) => val == null ? 'Select department' : null,
-                  ),
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Date (yyyy/mm/dd)'),
-                    onChanged: (val) => date = val,
-                    validator: (val) => val == null || val.isEmpty ? 'Enter date' : null,
-                  ),
-                  TextFormField(
-                    decoration: const InputDecoration(labelText: 'Description'),
-                    maxLines: 3,
-                    onChanged: (val) => description = val,
-                    validator: (val) => val == null || val.isEmpty ? 'Enter description' : null,
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red[200]),
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text('Cancel'),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green[200]),
-                        onPressed: () {
-                          if (_formKey.currentState!.validate()) {
-                            final letterId = _generateLetterId(type!, department!, date);
-                            setState(() {
-                              notifications.add(NotificationRequest(
-                                letterId: letterId,
-                                type: type!,
-                                department: department!,
-                                date: date,
-                                description: description,
-                              ));
-                            });
-                            Navigator.of(context).pop();
-                          }
-                        },
-                        child: const Text('Add'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          contentPadding: const EdgeInsets.all(8),
+          content: LetterDispatchForm(
+            initialLetterId: tempLetterId,
+            onSubmit: (data) {
+              // Parse department code from department string (e.g., 'LA (Land)')
+              String department = data['department'] ?? '';
+              String deptName = department.contains('(')
+                  ? department.split('(')[1].replaceAll(')', '').trim()
+                  : department;
+              String type = data['category'] ?? 'Internal';
+              String date = data['receivedDate'] != null
+                  ? data['receivedDate'].toString().split(' ')[0].replaceAll('-', '/')
+                  : today;
+              String letterId = _generateLetterId(type, deptName, date);
+              setState(() {
+                notifications.add(NotificationRequest(
+                  letterId: letterId,
+                  type: type,
+                  department: deptName,
+                  date: date,
+                  description: data['reason'] ?? '', // or another field for description
+                ));
+              });
+            },
           ),
         );
       },
@@ -163,13 +113,15 @@ class _DispatchNotificationsState extends State<DispatchNotifications> {
     );
   }
 
-  Widget _buildSidebarButton(String text, VoidCallback onPressed) {
+  Widget _buildSidebarButton(String text, VoidCallback onPressed, {bool isActive = false}) {
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 103, 21, 158),
+          backgroundColor: isActive
+              ? const Color(0xFFA58AC3)
+              : const Color.fromARGB(255, 103, 21, 158),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
             side: const BorderSide(
@@ -283,7 +235,7 @@ class _DispatchNotificationsState extends State<DispatchNotifications> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          _buildSidebarButton('Dispatch Notifications', () {}),
+                          _buildSidebarButton('Notifications', () {}, isActive: true),
                           const SizedBox(height: 20),
                           _buildSidebarButton('Apply Leave', () {}),
                           const Divider(),
@@ -369,7 +321,14 @@ class _DispatchNotificationsState extends State<DispatchNotifications> {
                           const SizedBox(height: 16),
                           SizedBox(
                             height: 60,
-                            child: CustomBottomNavigationBar(),
+                            child: CustomBottomNavigationBar(
+                              onHomePressed: () {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (context) => const Homepage()),
+                                  (route) => false,
+                                );
+                              },
+                            ),
                           ),
                         ],
                       ),

@@ -28,7 +28,8 @@
 import 'package:flutter/material.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
-  const CustomBottomNavigationBar({super.key});
+  final VoidCallback? onHomePressed;
+  const CustomBottomNavigationBar({super.key, this.onHomePressed});
 
   @override
   State<CustomBottomNavigationBar> createState() => _CustomBottomNavigationBarState();
@@ -41,8 +42,11 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
     setState(() {
       _selectedIndex = index;
     });
-
-    debugPrint("Selected Index: $index");
+    if (index == 0 && widget.onHomePressed != null) {
+      widget.onHomePressed!();
+    } else {
+      debugPrint("Selected Index: $index");
+    }
   }
 
   @override
