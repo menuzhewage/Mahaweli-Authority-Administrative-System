@@ -253,8 +253,7 @@ class _HomepageState extends State<Homepage> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              Text('Personal File Handling'),
-                                              Text('Request Management'),
+                                              Text('Letter Dispatch')
                                             ],
                                           ),
                                         ),
