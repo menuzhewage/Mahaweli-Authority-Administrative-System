@@ -105,7 +105,11 @@ class _LeavedetailspageState extends State<Leavedetailspage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const Leaveapplypage(),
+                                builder: (context) => const Leaveapplypage(
+                                  dashboardTitle: 'Leave Handler Dashboard',
+                                  firstButtonText: 'Leave Details',
+                                  secondButtonText: 'Apply leaves',
+                                ),
                               ),
                             );
                           },
@@ -235,7 +239,7 @@ class _LeavedetailspageState extends State<Leavedetailspage> {
                           child: const Icon(Icons.add),
                         ),
                       ),
-                      Spacer(),
+                      const Spacer(),
                       SizedBox(
                         height: 60,
                         child: CustomBottomNavigationBar(),

@@ -137,7 +137,11 @@ class _LeavehandlerpageState extends State<Leavehandlerpage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const Leaveapplypage(),
+                                builder: (context) => const Leaveapplypage(
+                                  dashboardTitle: 'Leave Handler Dashboard',
+                                  firstButtonText: 'Leave Details',
+                                  secondButtonText: 'Apply leaves',
+                                ),
                               ),
                             );
                           },

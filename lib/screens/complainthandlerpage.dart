@@ -4,6 +4,7 @@ import 'package:mahaweli_admin_system/components/annual_task_card.dart';
 import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
 import 'package:mahaweli_admin_system/components/build_media_section_card.dart';
 import 'package:mahaweli_admin_system/screens/leaveapplypage.dart';
+import 'package:mahaweli_admin_system/screens/complaintspage.dart';
 
 import '../classes/task.dart';
 
@@ -101,7 +102,14 @@ class _ComplainthandlerpageState extends State<Complainthandlerpage> {
                                     color: Colors.white,
                                     width: 2,
                                   ))),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Complaintspage(),
+                              ),
+                            );
+                          },
                           child: const Text('Complaints',
                               style: TextStyle(
                                 color: Colors.white,
@@ -129,7 +137,11 @@ class _ComplainthandlerpageState extends State<Complainthandlerpage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const Leaveapplypage(),
+                                builder: (context) => const Leaveapplypage(
+                                  dashboardTitle: 'Complaint Handler Dashboard',
+                                  firstButtonText: 'Complaints',
+                                  secondButtonText: 'Apply leaves',
+                                ),
                               ),
                             );
                           },

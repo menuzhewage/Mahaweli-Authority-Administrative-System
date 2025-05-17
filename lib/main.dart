@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mahaweli_admin_system/screens/homepage.dart';
 import 'package:mahaweli_admin_system/screens/login.dart';
 import 'package:mahaweli_admin_system/screens/leavehandlerpage.dart';
+import 'package:mahaweli_admin_system/screens/complainthandlerpage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      home: Leavehandlerpage(),
+      home: Complainthandlerpage(),
     );
   }
 }

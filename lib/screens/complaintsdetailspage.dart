@@ -1,28 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
-import 'package:mahaweli_admin_system/screens/leavehandlerpage.dart';
-import 'package:mahaweli_admin_system/screens/leavedetailspage.dart';
-import 'package:mahaweli_admin_system/components/leave_application_form.dart'; // Import your leave application form
-import 'package:mahaweli_admin_system/screens/complainthandlerpage.dart';
-import 'package:mahaweli_admin_system/screens/complaintspage.dart';
+import 'package:mahaweli_admin_system/screens/complaintspage.dart'; // Import the complaints page
+import 'package:mahaweli_admin_system/screens/leaveapplypage.dart'; // Import the leave apply page
 
-class Leaveapplypage extends StatefulWidget {
-  final String dashboardTitle;
-  final String firstButtonText;
-  final String secondButtonText;
+class ComplaintDetailsPage extends StatefulWidget {
+  final String complaintId;
 
-  const Leaveapplypage({
-    super.key,
-    required this.dashboardTitle,
-    required this.firstButtonText,
-    required this.secondButtonText,
-  });
+  const ComplaintDetailsPage({super.key, required this.complaintId});
 
   @override
-  State<Leaveapplypage> createState() => _LeaveapplypageState();
+  State<ComplaintDetailsPage> createState() => _ComplaintDetailsPageState();
 }
 
-class _LeaveapplypageState extends State<Leaveapplypage> {
+class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,30 +31,20 @@ class _LeaveapplypageState extends State<Leaveapplypage> {
                   width: MediaQuery.sizeOf(context).width * 0.2,
                   child: Column(
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const Leavehandlerpage(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: MediaQuery.sizeOf(context).width,
-                          child: Card(
-                            color: const Color.fromARGB(255, 228, 228, 228),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Center(
-                                child: Text(
-                                  widget.dashboardTitle,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                  ),
+                      Container(
+                        width: MediaQuery.sizeOf(context).width,
+                        child: Card(
+                          color: const Color.fromARGB(255, 228, 228, 228),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Center(
+                              child: Text(
+                                'Complaint Handler Dashboard',
+                                style: TextStyle(
+                                  fontSize: 18,
                                 ),
                               ),
                             ),
@@ -96,13 +75,11 @@ class _LeaveapplypageState extends State<Leaveapplypage> {
                               ),
                             );
                           },
-                          child: Text(
-                            widget.firstButtonText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
+                          child: const Text('Complaints',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              )),
                         ),
                       ),
                       const SizedBox(
@@ -121,14 +98,23 @@ class _LeaveapplypageState extends State<Leaveapplypage> {
                                     color: Colors.white,
                                     width: 2,
                                   ))),
-                          onPressed: () {},
-                          child: Text(
-                            widget.secondButtonText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const Leaveapplypage(
+                                  dashboardTitle: 'Complaint Handler Dashboard',
+                                  firstButtonText: 'Complaints',
+                                  secondButtonText: 'Apply leaves',
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text('Apply leaves',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              )),
                         ),
                       ),
                       const Divider(),
@@ -178,85 +164,50 @@ class _LeaveapplypageState extends State<Leaveapplypage> {
                   child: Column(
                     children: [
                       const Text(
-                        'Your Leave Status',
+                        'Complaint Details',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                children: const [
-                                  Text(
-                                    'Used Leaves',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  Text(
-                                    '14',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                children: const [
-                                  Text(
-                                    'Leave Balance',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  Text(
-                                    '48',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                content: Container(
-                                  width: double.maxFinite,
-                                  child:
-                                      const LeaveApplicationForm(), // Use your existing form
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                'Complaint ID: ${widget.complaintId}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              );
-                            },
-                          );
-                        },
-                        child: const Text('Apply a Leave'),
-                      ),
-                      const Spacer(),
-                      SizedBox(
-                        height: 60,
-                        child: CustomBottomNavigationBar(),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Description: This is a detailed description of the complaint.',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Status: Open',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Date: 2024-05-10',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              // Add more details as needed
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
