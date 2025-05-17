@@ -163,14 +163,6 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
                   padding: const EdgeInsets.all(40.0),
                   child: Column(
                     children: [
-                      const Text(
-                        'Complaint Details',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -190,24 +182,79 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
                                   fontSize: 16,
                                 ),
                               ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Status: Open',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              const Text(
-                                'Date: 2024-05-10',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                              // Add more details as needed
                             ],
                           ),
                         ),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              Container(
+                                height: 50,
+                                width: 2,
+                                color: Colors.green,
+                              ),
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              Container(
+                                height: 50,
+                                width: 2,
+                                color: Colors.green,
+                              ),
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: const BoxDecoration(
+                                  color: Colors.green,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 20),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Assigned to miss. henri',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              Text(
+                                'Reviewed by henri as assigned to charles',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              Text(
+                                'Reviewed by henri as assigned to charles',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
