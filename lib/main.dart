@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:mahaweli_admin_system/app_layout/main_wrapper.dart';
 import 'package:mahaweli_admin_system/screens/homepage.dart';
-import 'package:mahaweli_admin_system/screens/login.dart';
+import 'package:mahaweli_admin_system/services/auth/login.dart';
+import 'package:mahaweli_admin_system/services/auth/register.dart';
 
-void main() {
+void main() async {
   runApp(const MyApp());
 }
 
@@ -11,10 +14,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
-      home: Homepage(),
+      home: RegistrationFlow(),
     );
   }
 }

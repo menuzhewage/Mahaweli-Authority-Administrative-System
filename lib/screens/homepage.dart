@@ -1,344 +1,330 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:mahaweli_admin_system/components/annual_task_card.dart';
-import 'package:mahaweli_admin_system/components/bottum_navigation_bar.dart';
 import 'package:mahaweli_admin_system/components/build_media_section_card.dart';
-
 import '../classes/task.dart';
+import 'package:intl/intl.dart';
+import 'package:dots_indicator/dots_indicator.dart';
 
-class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _HomePageState extends State<HomePage> {
   final List<Task> tasks = [
     Task(
-      name: 'Task 1',
-      description: 'Description for Task 1',
-      dueDate: '2025-03-01',
-      createdDate: '2025-02-15',
-      imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97',
-    ),
+        name: 'Annual Report',
+        description: 'Complete the annual report for 2023',
+        dueDate: DateTime.now().add(const Duration(days: 7)),
+        priority: 'High',
+        status: 'In Progress',
+        imageUrl: ""),
     Task(
-      name: 'Task 2',
-      description: 'Description for Task 2',
-      dueDate: '2025-03-05',
-      createdDate: '2025-02-16',
-      imageUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d',
-    ),
+        name: 'Budget Planning',
+        description: 'Prepare the budget for Q1 2024',
+        dueDate: DateTime.now().add(const Duration(days: 14)),
+        priority: 'Medium',
+        status: 'Not Started',
+        imageUrl: ""),
     Task(
-      name: 'Task 3',
-      description: 'Description for Task 3',
-      dueDate: '2025-03-10',
-      createdDate: '2025-02-17',
-      imageUrl: 'https://images.unsplash.com/photo-1494172961521-33799ddd43a5',
-    ),
-    Task(
-      name: 'Task 4',
-      description: 'Description for Task 4',
-      dueDate: '2025-03-15',
-      createdDate: '2025-02-18',
-      imageUrl: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f',
-    ),
+        name: 'Team Meeting',
+        description: 'Schedule a team meeting for next week',
+        dueDate: DateTime.now().add(const Duration(days: 3)),
+        priority: 'Low',
+        status: 'Completed',
+        imageUrl: ""),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 4,
+    return _buildMainContent(context);
+  }
+
+  Widget _buildMainContent(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final isEmpty = tasks.isEmpty;
+
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 16),
+                _buildTaskCarousel(context, isEmpty),
+                if (!isEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildCarouselIndicator(),
+                ],
+                const SizedBox(height: 24),
+                const Divider(height: 1),
+                const SizedBox(height: 24),
+                _buildMediaSection(context),
+                const SizedBox(height: 24),
+                _buildWelcomeSection(context),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Dashboard Overview',
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                  left: 30,
-                  top: 50,
-                  right: 30,
-                ),
-                child: Container(
-                  width: MediaQuery.sizeOf(context).width * 0.2,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: MediaQuery.sizeOf(context).width,
-                        child: Card(
-                          color: const Color.fromARGB(255, 228, 228, 228),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Center(
-                              child: Text(
-                                'Admin dashboard',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 103, 21, 158),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ))),
-                          onPressed: () {},
-                          child: const Text('Employee Profile View',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              )),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 103, 21, 158),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ))),
-                          onPressed: () {},
-                          child: const Text(
-                            'Request Management',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width,
-                        height: 50,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  const Color.fromARGB(255, 103, 21, 158),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: const BorderSide(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ))),
-                          onPressed: () {},
-                          child: const Text('Apply leaves',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                              )),
-                        ),
-                      ),
-                      const Divider(),
-                      Container(
-                        height: MediaQuery.sizeOf(context).height * 0.5,
-                        margin: const EdgeInsets.only(
-                          top: 30,
-                        ),
-                        child: SizedBox(
-                          width: MediaQuery.sizeOf(context).width,
-                          height: MediaQuery.sizeOf(context).height,
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Chat',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.black,
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
+              Icon(
+                Icons.calendar_today,
+                size: 16,
+                color: colorScheme.primary,
               ),
-              Container(
-                height: MediaQuery.sizeOf(context).height,
-                width: 2,
-                decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 210, 210, 210)),
-              ),
-              Container(
-                width: MediaQuery.sizeOf(context).width * 0.5,
-                child: Padding(
-                  padding: const EdgeInsets.all(40.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CarouselSlider(
-                        options: CarouselOptions(
-                          height: 260.0,
-                          enlargeCenterPage: true,
-                          autoPlay: true,
-                          aspectRatio: 16 / 9,
-                          autoPlayCurve: Curves.fastOutSlowIn,
-                          enableInfiniteScroll: true,
-                          autoPlayAnimationDuration:
-                              const Duration(milliseconds: 800),
-                          viewportFraction: 0.8,
-                        ),
-                        items: tasks
-                            .map((task) => AnnualTaskCard.buildCard(task))
-                            .toList(),
-                      ),
-                      const Divider(),
-                      BuildMediaSectionCard(),
-                      const Spacer(),
-                      const Center(
-                        child: Text(
-                          'Welcome',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      const Center(
-                        child: Text(
-                          'Need help? Discover what actions you can perform here!',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.sizeOf(context).width * 0.2,
-                        height: 60,
-                        child: Card(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text('Personal File Handling'),
-                                Text('Request Management')
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      Spacer(),
-                      SizedBox(
-                        height: 60,
-                        child: CustomBottomNavigationBar(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                height: MediaQuery.sizeOf(context).height,
-                width: 2,
-                decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 210, 210, 210)),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(
-                  top: 20,
-                  left: 20,
-                  right: 20,
-                ),
-                child: Container(
-                  width: MediaQuery.sizeOf(context).width * 0.2,
-                  child: Column(
-                    children: [
-                      Container(
-                        height: MediaQuery.sizeOf(context).height * 0.45,
-                        child: SizedBox(
-                          width: MediaQuery.sizeOf(context).width,
-                          height: MediaQuery.sizeOf(context).height,
-                          child: Card(
-                            color: const Color.fromARGB(255, 106, 10, 157),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'Todo',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: const Color.fromARGB(
-                                        255, 255, 255, 255),
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                      const Divider(),
-                      Container(
-                        height: MediaQuery.sizeOf(context).height * 0.45,
-                        child: SizedBox(
-                          width: MediaQuery.sizeOf(context).width,
-                          height: MediaQuery.sizeOf(context).height,
-                          child: Card(
-                            color: const Color.fromARGB(255, 114, 20, 173),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Column(
-                                children: [],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                DateFormat('MMMM d, y').format(DateTime.now()),
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.primary,
                 ),
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildTaskCarousel(BuildContext context, bool isEmpty) {
+    final isLargeScreen = MediaQuery.of(context).size.width > 1200;
+
+    return SizedBox(
+      height: isLargeScreen ? 350 : 250,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CarouselSlider(
+            options: CarouselOptions(
+              height: isLargeScreen ? 350 : 250,
+              viewportFraction: isEmpty ? 1.0 : (isLargeScreen ? 0.82 : 0.88),
+              enlargeCenterPage: !isEmpty,
+              autoPlay: !isEmpty,
+              autoPlayInterval: const Duration(seconds: 5),
+              autoPlayCurve: Curves.fastEaseInToSlowEaseOut,
+              enableInfiniteScroll: !isEmpty,
+              aspectRatio: 16 / 9,
+              pauseAutoPlayOnTouch: true,
+              scrollPhysics: const BouncingScrollPhysics(),
+            ),
+            items: isEmpty
+                ? [_buildEmptyStateCard(context)]
+                : tasks.map((task) => _buildTaskCard(context, task)).toList(),
+          ),
+          if (isEmpty)
+            Positioned.fill(
+              child: AnimatedOpacity(
+                opacity: 1,
+                duration: const Duration(milliseconds: 300),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Theme.of(context).colorScheme.surface.withOpacity(0.6),
+                        Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCarouselIndicator() {
+    return DotsIndicator(
+      dotsCount: tasks.length,
+      position: 0,
+      decorator: DotsDecorator(
+        color: Theme.of(context).colorScheme.surfaceVariant,
+        activeColor: Theme.of(context).colorScheme.primary,
+        size: const Size.square(8),
+        activeSize: const Size(24, 8),
+        spacing: const EdgeInsets.symmetric(horizontal: 4),
+        activeShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMediaSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Media & Resources',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        const SizedBox(height: 16),
+       BuildMediaSectionCard(),
+      ],
+    );
+  }
+
+  Widget _buildWelcomeSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
+    final isMediumScreen = MediaQuery.of(context).size.width > 800;
+
+    return Center(
+      child: Column(
+        children: [
+          Text(
+            'Welcome back, Administrator',
+            style: textTheme.titleMedium?.copyWith(
+              color: colorScheme.onSurface.withOpacity(0.8),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Need assistance? Here are quick actions to get started',
+            style: textTheme.bodyMedium?.copyWith(
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildQuickAction(context, Icons.folder_open, 'Files'),
+              _buildQuickAction(context, Icons.request_page, 'Requests'),
+              if (isMediumScreen)
+                _buildQuickAction(context, Icons.bar_chart, 'Reports'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(BuildContext context, Task task) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: AnnualTaskCard.buildCard(task),
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final constraints = MediaQuery.of(context).size;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: constraints.width * 0.9,
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: colorScheme.surface,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.assignment_outlined,
+              size: 64,
+              color: colorScheme.primary.withOpacity(0.3),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'No Tasks Found',
+              style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600, color: colorScheme.primary),
+            ),
+            const SizedBox(height: 12),
+            const SizedBox(height: 24),
+            FilledButton.tonal(
+              onPressed: () {},
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Create New Task'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAction(BuildContext context, IconData icon, String label) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: 80,
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(
+              icon,
+              size: 24,
+              color: theme.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
