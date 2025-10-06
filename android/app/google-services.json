@@ -1,15 +1,54 @@
 {
   "project_info": {
     "project_number": "682530565593",
+    "firebase_url": "https://mahaweliauthoritygroupproject-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "mahaweliauthoritygroupproject",
     "storage_bucket": "mahaweliauthoritygroupproject.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:682530565593:android:9fbf9607954543c90ffdc8",
+        "mobilesdk_app_id": "1:682530565593:android:3ec4477212737b020ffdc8",
         "android_client_info": {
           "package_name": "com.example.mahaweli_admin_system"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhf8eWf9S4NVrExsD1mp4WbCowPMlaisk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682530565593:android:921daa4efbc775d80ffdc8",
+        "android_client_info": {
+          "package_name": "com.example.mahaweli_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhf8eWf9S4NVrExsD1mp4WbCowPMlaisk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682530565593:android:20ac3401f51a498a0ffdc8",
+        "android_client_info": {
+          "package_name": "com.example.mahaweli_mobileapp"
         }
       },
       "oauth_client": [],

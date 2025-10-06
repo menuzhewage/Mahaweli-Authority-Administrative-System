@@ -2,6 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:mahaweli_admin_system/components/annual_task_card.dart';
 import 'package:mahaweli_admin_system/components/build_media_section_card.dart';
+import 'package:mahaweli_admin_system/services/user_service.dart';
 import '../classes/task.dart';
 import 'package:intl/intl.dart';
 import 'package:dots_indicator/dots_indicator.dart';
@@ -37,6 +38,8 @@ class _HomePageState extends State<HomePage> {
         status: 'Completed',
         imageUrl: ""),
   ];
+
+  String? role = UserService.currentUserRole;
 
   @override
   Widget build(BuildContext context) {
@@ -88,11 +91,12 @@ class _HomePageState extends State<HomePage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'Dashboard Overview',
+          role!,
           style: textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w600,
           ),
         ),
+        
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(

@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
+
+import '../models/employee_model.dart';
 
 class EmployeeManagementPage extends StatefulWidget {
   const EmployeeManagementPage({super.key});
@@ -22,87 +25,110 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
   }
 
   Future<void> _loadEmployees() async {
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 1));
-    
-    setState(() {
-      _employees = [
-        Employee(
-          id: 'EMP001',
-          name: 'K. D. Perera',
-          position: 'Senior Engineer',
-          department: 'Irrigation',
-          office: 'Polgolla',
-          contact: '0771234567',
-          status: 'Active',
-          avatarUrl: ''),
-        Employee(
-            id: 'EMP002',
-            name: 'N. S. Fernando',
-            position: 'Field Officer',
-            department: 'Agriculture',
-            office: 'Victoria',
-            contact: '0712345678',
-            status: 'Active',
-            avatarUrl: ''),
-        Employee(
-            id: 'EMP003',
-            name: 'R. M. Bandara',
-            position: 'Accountant',
-            department: 'Finance',
-            office: 'Head Office',
-            contact: '0762345678',
-            status: 'Active',
-            avatarUrl: ''),
-        Employee(
-            id: 'EMP004',
-            name: 'S. P. Jayawardena',
-            position: 'Technical Assistant',
-            department: 'Maintenance',
-            office: 'Randenigala',
-            contact: '0753456789',
-            status: 'On Leave',
-            avatarUrl: ''),
-        Employee(
-            id: 'EMP005',
-            name: 'L. K. Silva',
-            position: 'Project Manager',
-            department: 'Construction',
-            office: 'Moragahakanda',
-            contact: '0724567890',
-            status: 'Active',
-            avatarUrl: ''),
-      ];
-      _filteredEmployees = _employees;
-      _isLoading = false;
-    });
+  QuerySnapshot snapshot =
+      await FirebaseFirestore.instance.collection('users').get();
+  List<Employee> employees = snapshot.docs.map((doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Employee(
+      id: doc.id,
+      name: data['name'] ?? 'Unknown',
+      position: data['role'] ?? 'Unknown',
+      department: data['department'] ?? 'Unknown',
+      contact: data['phone'] ?? 'Unknown',
+      status: data['status'] ?? 'Unknown',
+      avatarUrl: data['avatarUrl'] ?? '',
+      salaryIncrementalDate: data['salary_incremental_date'] ?? '', // Add this
+    );
+  }).toList();
+  setState(() {
+    _employees = employees;
+    _filteredEmployees = employees;
+    _isLoading = false;
+  });
+  _filterEmployees();
+}
+
+Future<void> _updateSalaryIncrementalDate(Employee employee) async {
+  final DateTime? selectedDate = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
+
+  if (selectedDate != null) {
+    // Format the date as you prefer
+    final formattedDate = '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}';
+    // Or use this for ISO format: final formattedDate = selectedDate.toIso8601String();
+
+    try {
+      // Update the field in Firestore - it will create if doesn't exist
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(employee.id)
+          .update({
+        'salary_incremental_date': formattedDate,
+        'last_updated': FieldValue.serverTimestamp(),
+      });
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Salary incremental date updated for ${employee.name}'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+
+      // Reload employees to reflect the change
+      _loadEmployees();
+
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error updating date: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
+}
 
   void _filterEmployees() {
     setState(() {
       _filteredEmployees = _employees.where((employee) {
-        final matchesSearch = employee.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        final matchesSearch = employee.name
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
             employee.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            employee.position.toLowerCase().contains(_searchQuery.toLowerCase());
-        
-        final matchesFilter = _selectedFilter == 'All' || 
-            employee.status == _selectedFilter;
-        
+            employee.position
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase());
+
+        final matchesFilter =
+            _selectedFilter == 'All' || employee.status == _selectedFilter;
+
         return matchesSearch && matchesFilter;
       }).toList();
     });
   }
 
   void _showEmployeeDetails(Employee employee) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => EmployeeDetailSheet(employee: employee),
-    );
-  }
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => EmployeeDetailSheet(
+      employee: employee,
+      onEditPressed: _updateSalaryIncrementalDate, // Pass the callback
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -116,10 +142,6 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
           IconButton(
             icon: const Icon(Iconsax.filter),
             onPressed: _showFilterOptions,
-          ),
-          IconButton(
-            icon: const Icon(Iconsax.add),
-            onPressed: () => _showAddEmployeeDialog(),
           ),
         ],
       ),
@@ -142,7 +164,11 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
             ),
           ),
           _isLoading
-              ? const Expanded(child: Center(child: CircularProgressIndicator()))
+              ? const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
               : _filteredEmployees.isEmpty
                   ? _buildEmptyState()
                   : Expanded(
@@ -151,7 +177,8 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
                         itemCount: _filteredEmployees.length,
                         itemBuilder: (context, index) => EmployeeCard(
                           employee: _filteredEmployees[index],
-                          onTap: () => _showEmployeeDetails(_filteredEmployees[index]),
+                          onTap: () =>
+                              _showEmployeeDetails(_filteredEmployees[index]),
                         ),
                       ),
                     ),
@@ -179,10 +206,6 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
                 ),
           ),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: () => _showAddEmployeeDialog(),
-            child: const Text('Add New Employee'),
-          ),
         ],
       ),
     );
@@ -206,43 +229,21 @@ class _EmployeeManagementPageState extends State<EmployeeManagementPage> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              ...['All', 'Active', 'On Leave', 'Inactive'].map((filter) => RadioListTile(
-                    title: Text(filter),
-                    value: filter,
-                    groupValue: _selectedFilter,
-                    onChanged: (value) {
-                      setState(() => _selectedFilter = value!);
-                      _filterEmployees();
-                      Navigator.pop(context);
-                    },
-                  )),
+              ...['All', 'Active', 'On Leave', 'pending'].map(
+                (filter) => RadioListTile(
+                  title: Text(filter),
+                  value: filter,
+                  groupValue: _selectedFilter,
+                  onChanged: (value) {
+                    setState(() => _selectedFilter = value!);
+                    _filterEmployees();
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _showAddEmployeeDialog() {
-    // Implement add employee functionality
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Employee'),
-        content: const Text('Employee creation form would go here'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              // Save new employee
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }
@@ -307,15 +308,12 @@ class EmployeeCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      employee.office,
-                      style: theme.textTheme.bodySmall,
-                    ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -327,6 +325,12 @@ class EmployeeCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
+              ),
+              IconButton(
+                onPressed: () {
+                  
+                },
+                icon: const Icon(Iconsax.edit),
               ),
             ],
           ),
@@ -351,8 +355,13 @@ class EmployeeCard extends StatelessWidget {
 
 class EmployeeDetailSheet extends StatelessWidget {
   final Employee employee;
+  final Function(Employee) onEditPressed; // Add this callback
 
-  const EmployeeDetailSheet({super.key, required this.employee});
+  const EmployeeDetailSheet({
+    super.key, 
+    required this.employee,
+    required this.onEditPressed, // Add this
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -404,10 +413,15 @@ class EmployeeDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               _buildDetailRow('Position', employee.position, Iconsax.briefcase),
-              _buildDetailRow('Department', employee.department, Iconsax.building),
-              _buildDetailRow('Office Location', employee.office, Iconsax.location),
+              _buildDetailRow(
+                  'Department', employee.department, Iconsax.building),
               _buildDetailRow('Contact Number', employee.contact, Iconsax.call),
-              _buildDetailRowWithStatus('Status', employee.status, statusColor, Iconsax.activity),
+              _buildDetailRowWithStatus(
+                  'Status', employee.status, statusColor, Iconsax.activity),
+              
+              // Add salary incremental date row
+              _buildSalaryIncrementalDateRow(employee),
+              
               const SizedBox(height: 32),
               Row(
                 children: [
@@ -428,8 +442,8 @@ class EmployeeDetailSheet extends StatelessWidget {
                   Expanded(
                     child: FilledButton.icon(
                       icon: const Icon(Iconsax.edit),
-                      label: const Text('Edit'),
-                      onPressed: () {},
+                      label: const Text('Edit Salary Date'), // Updated text
+                      onPressed: () => onEditPressed(employee), // Use callback
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
@@ -446,6 +460,53 @@ class EmployeeDetailSheet extends StatelessWidget {
       ),
     );
   }
+
+  // Add this new method to display salary incremental date
+  Widget _buildSalaryIncrementalDateRow(Employee employee) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        children: [
+          Icon(
+            Iconsax.calendar,
+            size: 20,
+            color: Colors.grey.shade600,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Salary Incremental Date',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  employee.salaryIncrementalDate?.isNotEmpty == true
+                      ? employee.salaryIncrementalDate!
+                      : 'Not set',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: employee.salaryIncrementalDate?.isNotEmpty == true
+                        ? Colors.green
+                        : Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ... keep the existing _buildDetailRow, _buildDetailRowWithStatus, and _getStatusColor methods
+
 
   Widget _buildDetailRow(String label, String value, IconData icon) {
     return Padding(
@@ -483,7 +544,8 @@ class EmployeeDetailSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRowWithStatus(String label, String value, Color color, IconData icon) {
+  Widget _buildDetailRowWithStatus(
+      String label, String value, Color color, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
@@ -506,7 +568,8 @@ class EmployeeDetailSheet extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -539,26 +602,4 @@ class EmployeeDetailSheet extends StatelessWidget {
         return Colors.grey;
     }
   }
-}
-
-class Employee {
-  final String id;
-  final String name;
-  final String position;
-  final String department;
-  final String office;
-  final String contact;
-  final String status;
-  final String avatarUrl;
-
-  Employee({
-    required this.id,
-    required this.name,
-    required this.position,
-    required this.department,
-    required this.office,
-    required this.contact,
-    required this.status,
-    required this.avatarUrl,
-  });
 }

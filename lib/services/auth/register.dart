@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import 'package:mahaweli_admin_system/services/auth/login.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:mahaweli_admin_system/services/auth/registration_pending_page.dart';
 
 class RegistrationFlow extends StatefulWidget {
   const RegistrationFlow({super.key});
@@ -15,34 +17,36 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
   final _formKeys = [GlobalKey<FormState>(), GlobalKey<FormState>(), GlobalKey<FormState>()];
   
   // Form data
-  String _email = '';
-  String _password = '';
-  String _confirmPassword = '';
-  String _department = '';
-  String _role = '';
-  String _employeeId = '';
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  final TextEditingController _confirmPassword = TextEditingController();
+  String? _department ;
+  String? _role ;
+  final TextEditingController _employeeId = TextEditingController();
+  final TextEditingController _name = TextEditingController();
+  final TextEditingController _phone = TextEditingController();
 
   final List<String> _departments = [
-    'Irrigation',
-    'Agriculture',
-    'Engineering',
-    'Finance',
     'Administration',
-    'Field Operations'
   ];
 
   final List<String> _roles = [
-    'Manager',
-    'Engineer',
-    'Field Officer',
-    'Accountant',
-    'Technical Staff',
-    'Administrator'
+    'RPM',
+    'Administrator',
+    'Complain Handler',
+    'Dispatch Handler',
+    'Personal File Handler',
+    'Leave Handler',
+    'Employee',
   ];
 
   @override
   void dispose() {
     _pageController.dispose();
+    _email.dispose();
+    _password.dispose();
+    _confirmPassword.dispose();
+    _employeeId.dispose();
     super.dispose();
   }
 
@@ -71,17 +75,60 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
   }
 
   Future<void> _submitRegistration() async {
-    // Here you would normally send data to your backend/Firebase
+  try {
+    // 1. Create user with email/password
+    final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: _email.text,
+      password: _password.text,
+    );
+    
+    // 2. Save additional user data to Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(credential.user!.uid)
+        .set({
+      'id': credential.user!.uid,
+      'email': _email.text,
+      'department': _department,
+      'role': _role,
+      'name': _name.text,
+      'phone': _phone.text,
+      'employeeId': _employeeId.text,
+      'status': 'pending',
+      'createdAt': FieldValue.serverTimestamp(),
+      'uid': credential.user!.uid,
+      'leaveBalance': 43,
+    });
+    
+    // 3. Navigate to pending page
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => RegistrationPendingPage(
-          email: _email,
-          department: _department,
+          email: _email.text,
+          department: _department ?? '',
         ),
       ),
     );
+    
+  } on FirebaseAuthException catch (e) {
+    // Handle errors
+    String errorMessage = 'Registration failed. Please try again.';
+    if (e.code == 'weak-password') {
+      errorMessage = 'The password provided is too weak.';
+    } else if (e.code == 'email-already-in-use') {
+      errorMessage = 'The account already exists for that email.';
+    }
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(errorMessage)),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('An unexpected error occurred')),
+    );
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -165,7 +212,7 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
               
                   // Page content
                   Expanded(
-                    child: Container(
+                    child: SizedBox(
                       width: MediaQuery.sizeOf(context).width * 0.5,
                       child: PageView(
                         controller: _pageController,
@@ -185,7 +232,7 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                   ),
               
                   // Navigation buttons
-                  Container(
+                  SizedBox(
                     width: MediaQuery.sizeOf(context).width * 0.5,
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -290,6 +337,7 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
               children: [
                 // Email field
                 TextFormField(
+                  controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
                     labelText: 'Work Email',
@@ -305,21 +353,22 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                       vertical: 16,
                     ),
                   ),
-                  // validator: (value) {
-                  //   if (value == null || value.isEmpty) {
-                  //     return 'Please enter your email';
-                  //   }
-                  //   if (!value.contains('@')) {
-                  //     return 'Please enter a valid email';
-                  //   }
-                  //   return null;
-                  // },
-                  onSaved: (value) => _email = value ?? '',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your email';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Please enter a valid email';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _email.text = value ?? '',
                 ),
                 const SizedBox(height: 20),
 
                 // Password field
                 TextFormField(
+                  controller: _password,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -335,21 +384,22 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                       vertical: 16,
                     ),
                   ),
-                  // validator: (value) {
-                  //   if (value == null || value.isEmpty) {
-                  //     return 'Please enter a password';
-                  //   }
-                  //   if (value.length < 6) {
-                  //     return 'Password must be at least 6 characters';
-                  //   }
-                  //   return null;
-                  // },
-                  onSaved: (value) => _password = value ?? '',
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _password.text = value ?? '',
                 ),
                 const SizedBox(height: 20),
 
                 // Confirm Password field
                 TextFormField(
+                  controller: _confirmPassword,
                   obscureText: true,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
@@ -365,13 +415,13 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                       vertical: 16,
                     ),
                   ),
-                  // validator: (value) {
-                  //   if (value != _password) {
-                  //     return 'Passwords do not match';
-                  //   }
-                  //   return null;
-                  // },
-                  onSaved: (value) => _confirmPassword = value ?? '',
+                  validator: (value) {
+                    if (value != _password.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _confirmPassword.text = value ?? '',
                 ),
               ],
             ),
@@ -428,7 +478,9 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
               children: [
                 // Department dropdown
                 DropdownButtonFormField<String>(
+                  value: _department,
                   decoration: InputDecoration(
+                    
                     labelText: 'Department',
                     prefixIcon: const Icon(Iconsax.building),
                     border: OutlineInputBorder(
@@ -454,12 +506,13 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                     }
                     return null;
                   },
-                  onChanged: (value) => _department = value ?? '',
+                  onChanged: (value) => setState(() => _department = value),
                 ),
                 const SizedBox(height: 20),
 
                 // Role dropdown
                 DropdownButtonFormField<String>(
+                  value: _role,
                   decoration: InputDecoration(
                     labelText: 'Role/Position',
                     prefixIcon: const Icon(Iconsax.user_square),
@@ -486,7 +539,7 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                     }
                     return null;
                   },
-                  onChanged: (value) => _role = value ?? '',
+                  onChanged: (value) => setState(() => _role = value),
                 ),
               ],
             ),
@@ -543,6 +596,7 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
               children: [
                 // Employee ID field
                 TextFormField(
+                  controller: _employeeId,
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     labelText: 'Employee ID',
@@ -564,9 +618,61 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
                     }
                     return null;
                   },
-                  onSaved: (value) => _employeeId = value ?? '',
+                  onSaved: (value) => _employeeId.text = value ?? '',
                 ),
                 const SizedBox(height: 20),
+                TextFormField(
+                  controller: _name,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    labelText: 'Name',
+                    prefixIcon: const Icon(Iconsax.card),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your full name';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _name.text = value ?? '',
+                ),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _phone,
+                  keyboardType: TextInputType.text,
+                  decoration: InputDecoration(
+                    labelText: 'Phone Number',
+                    prefixIcon: const Icon(Iconsax.card),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: Colors.white,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your phone number';
+                    }
+                    return null;
+                  },
+                  onSaved: (value) => _phone.text = value ?? '',
+                ),
+                const SizedBox(height: 40),
 
                 // Info text
                 Container(
@@ -591,175 +697,6 @@ class _RegistrationFlowState extends State<RegistrationFlow> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class RegistrationPendingPage extends StatelessWidget {
-  final String email;
-  final String department;
-
-  const RegistrationPendingPage({
-    super.key,
-    required this.email,
-    required this.department,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          // Background with gradient (same as login)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF2D1A4A),
-                  Color(0xFF4A2C80),
-                ],
-              ),
-            ),
-          ),
-
-          // Content
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Container(
-                width: MediaQuery.sizeOf(context).width * 0.5,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Animated checkmark (would use Lottie in real app)
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple.withOpacity(0.2),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.deepPurple,
-                          width: 2,
-                        ),
-                      ),
-                      child: const Icon(
-                        Iconsax.tick_circle,
-                        size: 60,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                
-                    Text(
-                      'Registration Submitted!',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                
-                    // Status card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildStatusRow('Email', email, Iconsax.sms),
-                          const Divider(height: 32, color: Colors.white30),
-                          _buildStatusRow('Department', department, Iconsax.building_3),
-                          const Divider(height: 32, color: Colors.white30),
-                          _buildStatusRow('Status', 'Pending Approval', Iconsax.clock),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                
-                    Text(
-                      'Your registration is under review\nYou will receive an email once approved',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withOpacity(0.8),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 40),
-                
-                    // Action button
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PurpleLoginPage()));
-                        },
-                        style: FilledButton.styleFrom(
-                          backgroundColor: Colors.deepPurple,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: Text(
-                          'RETURN TO LOGIN',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusRow(String label, String value, IconData icon) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          size: 24,
-          color: Colors.white.withOpacity(0.8),
-        ),
-        const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ],
     );
   }
 }

@@ -92,7 +92,7 @@ class AnnualTaskCard {
                           width: double.infinity,
                           placeholder: (context, url) => Container(
                             color: colorScheme.surfaceVariant,
-                            child: Center(child: CircularProgressIndicator()),
+                            child: const Center(child: CircularProgressIndicator()),
                           ),
                           errorWidget: (context, url, error) => Container(
                             color: colorScheme.errorContainer,
@@ -147,7 +147,7 @@ class AnnualTaskCard {
                           children: [
                             Icon(Icons.calendar_today_outlined,
                                 size: 16, color: colorScheme.primary),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Text(
                               'Due: ${_formatDate(task.dueDate.toString())}',
                               style: theme.textTheme.labelSmall
@@ -155,7 +155,7 @@ class AnnualTaskCard {
                             ),
                           ],
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         LinearProgressIndicator(
                           value: _calculateProgress(task),
                           backgroundColor: colorScheme.surfaceVariant,

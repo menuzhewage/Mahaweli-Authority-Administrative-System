@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mahaweli_admin_system/app_layout/main_wrapper.dart';
+import 'package:mahaweli_admin_system/queue_user.dart';
+import 'package:mahaweli_admin_system/services/auth/register.dart';
+import 'package:mahaweli_admin_system/services/user_service.dart';
+import 'dart:html' as html;
 
 class PurpleLoginPage extends StatefulWidget {
   const PurpleLoginPage({super.key});
@@ -12,13 +17,13 @@ class PurpleLoginPage extends StatefulWidget {
 
 class _PurpleLoginPageState extends State<PurpleLoginPage> {
   final _formKey = GlobalKey<FormState>();
-  // final _auth = FirebaseAuth.instance;
+  final _auth = FirebaseAuth.instance;
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Unique card shape
   final ShapeBorder _loginCardShape = const ContinuousRectangleBorder(
     borderRadius: BorderRadius.only(
       topLeft: Radius.circular(60),
@@ -29,58 +34,131 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
   );
 
   @override
-  // void dispose() {
-  //   _emailController.dispose();
-  //   _passwordController.dispose();
-  //   super.dispose();
-  // }
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
-  // Future<void> _signIn() async {
-  //   if (!_formKey.currentState!.validate()) return;
-    
-  //   setState(() => _isLoading = true);
-    
-  //   try {
-  //     await _auth.signInWithEmailAndPassword(
-  //       email: _emailController.text.trim(),
-  //       password: _passwordController.text.trim(),
-  //     );
-  //     // Success handled automatically by Firebase Auth listener
-  //   } on FirebaseAuthException catch (e) {
-  //     // Fluttertoast.showToast(
-  //     //    msg: _getErrorMessage(e.code),
-  //     //   toastLength: Toast.LENGTH_LONG,
-  //     //   gravity: ToastGravity.BOTTOM,
-  //     //   backgroundColor: Colors.deepPurple,
-  //     //   textColor: Colors.white,
-  //     // );
-  //   } finally {
-  //     if (mounted) setState(() => _isLoading = false);
-  //   }
-  // }
+  @override
+  void initState() {
+    super.initState();
+    _loadRememberedUser();
+    // UserService.getCurrentUserLeaveBlanace();
+  }
 
-  // String _getErrorMessage(String code) {
-  //   switch (code) {
-  //     case 'user-not-found':
-  //       return 'No user found with this email';
-  //     case 'wrong-password':
-  //       return 'Incorrect password';
-  //     case 'invalid-email':
-  //       return 'Invalid email format';
-  //     default:
-  //       return 'Login failed. Please try again';
-  //   }
-  // }
+  void _loadRememberedUser() {
+    // Check if rememberMe is enabled
+    final remembered = html.window.localStorage['rememberMe'] == 'true';
+
+    if (remembered) {
+      _emailController.text = html.window.localStorage['email'] ?? '';
+      // Note: For security, we're NOT storing the password in localStorage
+    }
+
+    setState(() {
+      _rememberMe = remembered;
+    });
+  }
+
+  Future<void> _signInWithEmailAndPassword() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (_rememberMe) {
+        html.window.localStorage['rememberMe'] = 'true';
+        html.window.localStorage['email'] = _emailController.text.trim();
+      } else {
+        html.window.localStorage.remove('rememberMe');
+        html.window.localStorage.remove('email');
+      }
+
+      await UserService.getCurrentUserRole();
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const MainWrapper(),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = "Login failed. Please try again.";
+
+      if (e.code == 'user-not-found') {
+        errorMessage = "No user found with this email.";
+      } else if (e.code == 'wrong-password') {
+        errorMessage = "Incorrect password.";
+      } else if (e.code == 'user-disabled') {
+        errorMessage = "This account has been disabled.";
+      } else if (e.code == 'too-many-requests') {
+        errorMessage = "Too many attempts. Try again later.";
+      }
+
+      Fluttertoast.showToast(
+        msg: errorMessage,
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "An unexpected error occurred",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
+      Fluttertoast.showToast(
+        msg: "Please enter a valid email address",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+      return;
+    }
+
+    try {
+      await _auth.sendPasswordResetEmail(email: _emailController.text.trim());
+      Fluttertoast.showToast(
+        msg: "Password reset email sent",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Failed to send reset email",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     final theme = Theme.of(context);
 
     return Scaffold(
       body: Stack(
         children: [
-          // Background with gradient and floating elements
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
@@ -133,7 +211,6 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                   Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white.withOpacity(0.1),
                           shape: BoxShape.circle,
@@ -142,10 +219,10 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                             width: 2,
                           ),
                         ),
-                        child: const Icon(
-                          Iconsax.security_safe,
-                          size: 40,
-                          color: Colors.white,
+                        child: Image.asset(
+                          '/images/logo_mahaweli.png',
+                          width: 120,
+                          height: 120,
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -170,7 +247,7 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                   const SizedBox(height: 40),
 
                   // Unique login card
-                  Container(
+                  SizedBox(
                     width: MediaQuery.sizeOf(context).width * 0.5,
                     child: Material(
                       elevation: 8,
@@ -207,7 +284,7 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                                 },
                               ),
                               const SizedBox(height: 20),
-                    
+
                               // Password field
                               TextFormField(
                                 controller: _passwordController,
@@ -244,17 +321,22 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                                 },
                               ),
                               const SizedBox(height: 16),
-                    
+
                               // Remember me & forgot password
                               Row(
                                 children: [
                                   Checkbox(
-                                    value: true,
-                                    onChanged: (value) {},
+                                    value: _rememberMe,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _rememberMe = value ?? false;
+                                      });
+                                    },
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(4),
                                     ),
-                                    fillColor: MaterialStateProperty.resolveWith<Color>(
+                                    fillColor: MaterialStateProperty
+                                        .resolveWith<Color>(
                                       (states) => Colors.deepPurple,
                                     ),
                                   ),
@@ -264,12 +346,13 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                                   ),
                                   const Spacer(),
                                   TextButton(
-                                    onPressed: () {
-                                      // Add forgot password flow
-                                    },
+                                    // onPressed: (){},
+                                    onPressed:
+                                        _isLoading ? null : _resetPassword,
                                     child: Text(
                                       'Forgot Password?',
-                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                      style:
+                                          theme.textTheme.bodyMedium?.copyWith(
                                         color: Colors.deepPurple,
                                       ),
                                     ),
@@ -277,13 +360,16 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                                 ],
                               ),
                               const SizedBox(height: 24),
-                    
+
                               // Login button
                               SizedBox(
                                 width: double.infinity,
                                 height: 50,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  // onPressed: (){},
+                                  onPressed: _isLoading
+                                      ? null
+                                      : _signInWithEmailAndPassword,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.deepPurple,
                                     shape: RoundedRectangleBorder(
@@ -298,12 +384,24 @@ class _PurpleLoginPageState extends State<PurpleLoginPage> {
                                         )
                                       : Text(
                                           'SIGN IN',
-                                          style: theme.textTheme.titleMedium?.copyWith(
+                                          style: theme.textTheme.titleMedium
+                                              ?.copyWith(
                                             color: Colors.white,
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                 ),
+                              ),
+                              const SizedBox(height: 24),
+                              GestureDetector(
+                                child: const Text('Sign up'),
+                                onTap: () {
+                                  Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              const RegistrationFlow()));
+                                },
                               ),
                             ],
                           ),

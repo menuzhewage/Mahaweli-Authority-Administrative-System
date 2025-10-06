@@ -4,7 +4,7 @@
       "android": {
         "default": {
           "projectId": "mahaweliauthoritygroupproject",
-          "appId": "1:682530565593:android:9fbf9607954543c90ffdc8",
+          "appId": "1:682530565593:android:3ec4477212737b020ffdc8",
           "fileOutput": "android/app/google-services.json"
         }
       },
@@ -28,7 +28,7 @@
         "lib/firebase_options.dart": {
           "projectId": "mahaweliauthoritygroupproject",
           "configurations": {
-            "android": "1:682530565593:android:9fbf9607954543c90ffdc8",
+            "android": "1:682530565593:android:3ec4477212737b020ffdc8",
             "ios": "1:682530565593:ios:0209536f02891dc00ffdc8",
             "macos": "1:682530565593:ios:0209536f02891dc00ffdc8",
             "web": "1:682530565593:web:49a321e4bb4b1a920ffdc8",
@@ -39,6 +39,8 @@
     }
   },
   "firestore": {
+    "database": "(default)",
+    "location": "asia-south1",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
@@ -55,11 +57,5 @@
         "destination": "/index.html"
       }
     ]
-  },
-  "storage": {
-    "rules": "storage.rules"
-  },
-  "database": {
-    "rules": "database.rules.json"
   }
 }

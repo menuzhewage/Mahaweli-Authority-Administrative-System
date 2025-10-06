@@ -60,7 +60,7 @@ class BuildMediaSectionCard extends StatelessWidget {
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 120,
                     mainAxisSpacing: 8,
                     crossAxisSpacing: 8,

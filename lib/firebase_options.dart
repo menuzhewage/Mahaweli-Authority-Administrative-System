@@ -46,15 +46,17 @@ class DefaultFirebaseOptions {
     messagingSenderId: '682530565593',
     projectId: 'mahaweliauthoritygroupproject',
     authDomain: 'mahaweliauthoritygroupproject.firebaseapp.com',
+    databaseURL: 'https://mahaweliauthoritygroupproject-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'mahaweliauthoritygroupproject.firebasestorage.app',
     measurementId: 'G-JWC3XG4CC5',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBhf8eWf9S4NVrExsD1mp4WbCowPMlaisk',
-    appId: '1:682530565593:android:9fbf9607954543c90ffdc8',
+    appId: '1:682530565593:android:3ec4477212737b020ffdc8',
     messagingSenderId: '682530565593',
     projectId: 'mahaweliauthoritygroupproject',
+    databaseURL: 'https://mahaweliauthoritygroupproject-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'mahaweliauthoritygroupproject.firebasestorage.app',
   );
 
@@ -63,6 +65,7 @@ class DefaultFirebaseOptions {
     appId: '1:682530565593:ios:0209536f02891dc00ffdc8',
     messagingSenderId: '682530565593',
     projectId: 'mahaweliauthoritygroupproject',
+    databaseURL: 'https://mahaweliauthoritygroupproject-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'mahaweliauthoritygroupproject.firebasestorage.app',
     iosBundleId: 'com.example.mahaweliAdminSystem',
   );
@@ -72,6 +75,7 @@ class DefaultFirebaseOptions {
     appId: '1:682530565593:ios:0209536f02891dc00ffdc8',
     messagingSenderId: '682530565593',
     projectId: 'mahaweliauthoritygroupproject',
+    databaseURL: 'https://mahaweliauthoritygroupproject-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'mahaweliauthoritygroupproject.firebasestorage.app',
     iosBundleId: 'com.example.mahaweliAdminSystem',
   );
@@ -82,7 +86,9 @@ class DefaultFirebaseOptions {
     messagingSenderId: '682530565593',
     projectId: 'mahaweliauthoritygroupproject',
     authDomain: 'mahaweliauthoritygroupproject.firebaseapp.com',
+    databaseURL: 'https://mahaweliauthoritygroupproject-default-rtdb.asia-southeast1.firebasedatabase.app',
     storageBucket: 'mahaweliauthoritygroupproject.firebasestorage.app',
     measurementId: 'G-X9T4FHLK0T',
   );
+
 }

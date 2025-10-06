@@ -1,14 +1,64 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 
-class ProfilePage extends StatelessWidget {
+import '../services/user_service.dart';
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+
+  Map<String, dynamic>? userData;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    fetchUserData();
+  }
+
+
+  Future<void> fetchUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists) {
+        setState(() {
+          userData = doc.data();
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+        });
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isMobile = MediaQuery.of(context).size.width < 600;
 
+    if (isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+          ),
+        ),
+      );
+    }
+
+    
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -25,11 +75,11 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Content Tabs
-            _buildTabSection(context),
+            // _buildTabSection(context),
             const SizedBox(height: 24),
             
             // Main Content Area
-            _buildContentSection(context, isMobile),
+            // _buildContentSection(context, isMobile),
           ],
         ),
       ),
@@ -88,7 +138,7 @@ class ProfilePage extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    'Dr. Sarah Johnson',
+                    userData!['name'] ?? 'Menuz',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -115,15 +165,10 @@ class ProfilePage extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Cardiologist | Massachusetts General Hospital',
+                UserService.currentUserRole ?? 'Role not set',
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: theme.colorScheme.onSurface.withOpacity(0.7),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Harvard Medical School graduate with 12 years of experience in interventional cardiology and heart failure management.',
-                style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
               Wrap(
@@ -132,7 +177,7 @@ class ProfilePage extends StatelessWidget {
                 children: [
                   _buildInfoChip(Iconsax.briefcase, '15 Years Exp'),
                   _buildInfoChip(Iconsax.award, 'Board Certified'),
-                  _buildInfoChip(Iconsax.location, 'Boston, MA'),
+                  _buildInfoChip(Iconsax.location, 'Mahaweli Authority System D'),
                 ],
               ),
             ],
@@ -147,21 +192,6 @@ class ProfilePage extends StatelessWidget {
               icon: const Icon(Iconsax.edit, size: 18),
               label: const Text('Edit Profile'),
               style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Iconsax.share, size: 18),
-              label: const Text('Share Profile'),
-              style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 16,
@@ -221,7 +251,7 @@ class ProfilePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Dr. Sarah Johnson',
+                  userData!['email'] ?? 'User',
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -248,7 +278,7 @@ class ProfilePage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Cardiologist | Massachusetts General Hospital',
+              UserService.currentUserRole ?? 'Role not set',
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurface.withOpacity(0.7),
@@ -257,11 +287,7 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(
-                'Harvard Medical School graduate with 12 years of experience in interventional cardiology and heart failure management.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
+              
             ),
             const SizedBox(height: 16),
             Wrap(
@@ -271,7 +297,7 @@ class ProfilePage extends StatelessWidget {
               children: [
                 _buildInfoChip(Iconsax.briefcase, '15 Years Exp'),
                 _buildInfoChip(Iconsax.award, 'Board Certified'),
-                _buildInfoChip(Iconsax.location, 'Boston, MA'),
+                _buildInfoChip(Iconsax.location, 'Mahaweli Authority System D'),
               ],
             ),
             const SizedBox(height: 16),
@@ -336,13 +362,11 @@ class ProfilePage extends StatelessWidget {
   Widget _buildDesktopStatsRow() {
     return Row(
       children: [
-        Expanded(child: _buildStatCard('Completed Projects', '1,248', Iconsax.health)),
+        Expanded(child: _buildStatCard('Completed Projects', '10', Iconsax.health)),
         const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Reviews', '4.9/5.0', Iconsax.star)),
+        Expanded(child: _buildStatCard('Years Experience', '10', Iconsax.calendar)),
         const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Years Experience', '15', Iconsax.calendar)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Publications', '42', Iconsax.document)),
+        Expanded(child: _buildStatCard('Leave Balance', '${userData?['leaveBalance']}', Iconsax.document)),
       ],
     );
   }
@@ -352,9 +376,8 @@ class ProfilePage extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: _buildStatCard('Cases', '1,248', Iconsax.health)),
+            Expanded(child: _buildStatCard('Cases', '10', Iconsax.health)),
             const SizedBox(width: 16),
-            Expanded(child: _buildStatCard('Reviews', '4.9/5', Iconsax.star)),
           ],
         ),
         const SizedBox(height: 16),

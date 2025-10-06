@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EmployeeRequestsPage extends StatefulWidget {
   const EmployeeRequestsPage({super.key});
@@ -9,11 +11,18 @@ class EmployeeRequestsPage extends StatefulWidget {
   State<EmployeeRequestsPage> createState() => _EmployeeRequestsPageState();
 }
 
-class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with SingleTickerProviderStateMixin {
+class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> 
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<LeaveRequest> _leaveRequests = [];
-  List<DispatchRequest> _dispatchRequests = [];
   bool _isLoading = true;
+  
+  // Firebase instances
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  
+  // Lists to hold data
+  List<Map<String, dynamic>> _registrationRequests = [];
+  List<Map<String, dynamic>> _dispatchRequests = [];
 
   @override
   void initState() {
@@ -29,112 +38,179 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
   }
 
   Future<void> _loadRequests() async {
-    // Simulate API calls
-    await Future.delayed(const Duration(seconds: 1));
-    
-    setState(() {
-      _leaveRequests = [
-        LeaveRequest(
-          id: 'LV001',
-          employeeName: 'K. D. Perera',
-          employeeId: 'EMP001',
-          leaveType: 'Annual',
-          startDate: DateTime.now().add(const Duration(days: 2)),
-          endDate: DateTime.now().add(const Duration(days: 5)),
-          reason: 'Family function',
-          status: 'Pending',
-          submittedDate: DateTime.now(),
+    try {
+      // Load registration requests (users with pending status)
+      final registrationQuery = await _firestore
+          .collection('users')
+          .where('status', isEqualTo: 'pending')
+          .get();
+      
+      _registrationRequests = registrationQuery.docs
+          .map((doc) => {
+                'id': doc.id,
+                ...doc.data(),
+              })
+          .toList();
+      
+      // Load dispatch requests
+      final dispatchQuery = await _firestore
+          .collection('dispatchRequests')
+          .where('status', isEqualTo: 'Pending')
+          .get();
+      
+      _dispatchRequests = dispatchQuery.docs
+          .map((doc) => {
+                'id': doc.id,
+                ...doc.data(),
+              })
+          .toList();
+      
+      setState(() {
+        _isLoading = false;
+      });
+    } catch (e) {
+      print('Error loading requests: $e');
+      setState(() {
+        _isLoading = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error loading requests: $e'),
+          backgroundColor: Colors.red,
         ),
-        LeaveRequest(
-          id: 'LV002',
-          employeeName: 'N. S. Fernando',
-          employeeId: 'EMP002',
-          leaveType: 'Medical',
-          startDate: DateTime.now().subtract(const Duration(days: 1)),
-          endDate: DateTime.now().add(const Duration(days: 3)),
-          reason: 'Hospitalization',
-          status: 'Approved',
-          submittedDate: DateTime.now().subtract(const Duration(days: 2)),
-        ),
-      ];
-
-      _dispatchRequests = [
-        DispatchRequest(
-          id: 'DS001',
-          employeeName: 'R. M. Bandara',
-          employeeId: 'EMP003',
-          purpose: 'Field inspection at Polgolla',
-          destination: 'Polgolla Dam Site',
-          vehicleRequired: true,
-          departureDate: DateTime.now().add(const Duration(days: 1)),
-          returnDate: DateTime.now().add(const Duration(days: 1)),
-          status: 'Pending',
-          submittedDate: DateTime.now(),
-        ),
-      ];
-
-      _isLoading = false;
-    });
+      );
+    }
   }
 
-  void _approveRequest(String id, String type) {
-    setState(() {
-      if (type == 'leave') {
-        _leaveRequests = _leaveRequests.map((request) {
-          if (request.id == id) {
-            return request.copyWith(status: 'Approved');
-          }
-          return request;
-        }).toList();
-      } else {
-        _dispatchRequests = _dispatchRequests.map((request) {
-          if (request.id == id) {
-            return request.copyWith(status: 'Approved');
-          }
-          return request;
-        }).toList();
-      }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$type request approved'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+  Future<void> _approveRegistration(String userId) async {
+    try {
+      // Update user status to active
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .update({'status': 'Active'});
+      
+      // Remove from local list
+      setState(() {
+        _registrationRequests.removeWhere((user) => user['id'] == userId);
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('User account activated successfully'),
+          backgroundColor: Colors.green,
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      print('Error approving registration: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
-  void _rejectRequest(String id, String type) {
-    setState(() {
-      if (type == 'leave') {
-        _leaveRequests = _leaveRequests.map((request) {
-          if (request.id == id) {
-            return request.copyWith(status: 'Rejected');
-          }
-          return request;
-        }).toList();
-      } else {
-        _dispatchRequests = _dispatchRequests.map((request) {
-          if (request.id == id) {
-            return request.copyWith(status: 'Rejected');
-          }
-          return request;
-        }).toList();
+  Future<void> _rejectRegistration(String userId) async {
+    try {
+      // Delete user from Firebase
+      await _firestore.collection('users').doc(userId).delete();
+      
+      // If user has auth account, delete it too (optional)
+      try {
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+        final email = userDoc['email'];
+        final user = await _auth.fetchSignInMethodsForEmail(email);
+        if (user.isNotEmpty) {
+          // Note: This requires admin privileges or custom cloud function
+          print('User auth account exists but cannot delete without admin privileges');
+        }
+      } catch (e) {
+        print('Error checking auth account: $e');
       }
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$type request rejected'),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+      
+      // Remove from local list
+      setState(() {
+        _registrationRequests.removeWhere((user) => user['id'] == userId);
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('User registration rejected and deleted'),
+          backgroundColor: Colors.green,
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      print('Error rejecting registration: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _approveDispatchRequest(String requestId) async {
+    try {
+      // Update dispatch request status to Approved
+      await _firestore
+          .collection('dispatchRequests')
+          .doc(requestId)
+          .update({'status': 'Approved'});
+      
+      // Remove from local list
+      setState(() {
+        _dispatchRequests.removeWhere((request) => request['id'] == requestId);
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Dispatch request approved'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('Error approving dispatch request: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _rejectDispatchRequest(String requestId) async {
+    try {
+      // Update dispatch request status to Rejected
+      await _firestore
+          .collection('dispatchRequests')
+          .doc(requestId)
+          .update({'status': 'Rejected'});
+      
+      // Remove from local list
+      setState(() {
+        _dispatchRequests.removeWhere((request) => request['id'] == requestId);
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Dispatch request rejected'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      print('Error rejecting dispatch request: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
@@ -147,7 +223,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
-            Tab(text: 'Leave Requests', icon: Icon(Iconsax.calendar_remove)),
+            Tab(text: 'New Registration Requests', icon: Icon(Iconsax.profile_2user)),
             Tab(text: 'Dispatch Requests', icon: Icon(Iconsax.car)),
           ],
         ),
@@ -157,22 +233,22 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildLeaveRequestsTab(theme),
+                _buildRegistrationRequestsTab(theme),
                 _buildDispatchRequestsTab(theme),
               ],
             ),
     );
   }
 
-  Widget _buildLeaveRequestsTab(ThemeData theme) {
-    return _leaveRequests.isEmpty
-        ? _buildEmptyState('No leave requests pending')
+  Widget _buildRegistrationRequestsTab(ThemeData theme) {
+    return _registrationRequests.isEmpty
+        ? _buildEmptyState('No registration requests pending')
         : ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: _leaveRequests.length,
+            itemCount: _registrationRequests.length,
             itemBuilder: (context, index) {
-              final request = _leaveRequests[index];
-              return _buildLeaveRequestCard(theme, request);
+              final user = _registrationRequests[index];
+              return _buildRegistrationRequestCard(theme, user);
             },
           );
   }
@@ -190,9 +266,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
           );
   }
 
-  Widget _buildLeaveRequestCard(ThemeData theme, LeaveRequest request) {
-    final statusColor = _getStatusColor(request.status);
-
+  Widget _buildRegistrationRequestCard(ThemeData theme, Map<String, dynamic> user) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -212,7 +286,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  request.employeeName,
+                  user['name'] ?? 'Unknown',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -220,35 +294,30 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: Colors.orange.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    request.status,
+                    'Pending',
                     style: theme.textTheme.labelSmall?.copyWith(
-                      color: statusColor,
+                      color: Colors.orange,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              '${request.leaveType} Leave',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Icon(
-                  Iconsax.calendar_1,
+                  Iconsax.sms,
                   size: 16,
                   color: theme.colorScheme.onSurface.withOpacity(0.5),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  '${DateFormat('MMM dd').format(request.startDate)} - ${DateFormat('MMM dd, yyyy').format(request.endDate)}',
+                  user['email'] ?? 'No email',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.7),
                   ),
@@ -256,49 +325,104 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              'Reason: ${request.reason}',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: 12),
-            if (request.status == 'Pending')
+            if (user['phone'] != null) ...[
               Row(
                 children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _rejectRequest(request.id, 'leave'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Reject'),
-                    ),
+                  Icon(
+                    Iconsax.call,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () => _approveRequest(request.id, 'leave'),
-                      style: FilledButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text('Approve'),
-                    ),
+                  const SizedBox(width: 8),
+                  Text(
+                    user['phone'],
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ],
               ),
+              const SizedBox(height: 8),
+            ],
+            if (user['department'] != null) ...[
+              Row(
+                children: [
+                  Icon(
+                    Iconsax.building,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    user['department'],
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+            if (user['position'] != null) ...[
+              Row(
+                children: [
+                  Icon(
+                    Iconsax.briefcase,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    user['position'],
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _rejectRegistration(user['id']),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Reject'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () => _approveRegistration(user['id']),
+                    style: FilledButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Approve'),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDispatchRequestCard(ThemeData theme, DispatchRequest request) {
-    final statusColor = _getStatusColor(request.status);
+  Widget _buildDispatchRequestCard(ThemeData theme, Map<String, dynamic> request) {
+    final statusColor = _getStatusColor(request['status']);
+
+    // Parse dates
+    DateTime departureDate;
+    if (request['departureDate'] is Timestamp) {
+      departureDate = (request['departureDate'] as Timestamp).toDate();
+    } else if (request['departureDate'] is String) {
+      departureDate = DateTime.parse(request['departureDate']);
+    } else {
+      departureDate = DateTime.now();
+    }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -319,7 +443,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  request.employeeName,
+                  request['employeeName'] ?? 'Unknown',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                   ),
@@ -331,7 +455,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    request.status,
+                    request['status'] ?? 'Pending',
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: statusColor,
                       fontWeight: FontWeight.w600,
@@ -342,7 +466,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
             ),
             const SizedBox(height: 8),
             Text(
-              'Purpose: ${request.purpose}',
+              'Purpose: ${request['purpose'] ?? 'Not specified'}',
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 8),
@@ -355,7 +479,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  request.destination,
+                  request['destination'] ?? 'Unknown destination',
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurface.withOpacity(0.7),
                   ),
@@ -372,7 +496,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  request.vehicleRequired ? 'Vehicle Required' : 'No Vehicle Needed',
+                  request['vehicleRequired'] == true ? 'Vehicle Required' : 'No Vehicle Needed',
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -387,18 +511,18 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  DateFormat('MMM dd, yyyy').format(request.departureDate),
+                  DateFormat('MMM dd, yyyy').format(departureDate),
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            if (request.status == 'Pending')
+            if (request['status'] == 'Pending')
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: () => _rejectRequest(request.id, 'dispatch'),
+                      onPressed: () => _rejectDispatchRequest(request['id']),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
@@ -412,7 +536,7 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      onPressed: () => _approveRequest(request.id, 'dispatch'),
+                      onPressed: () => _approveDispatchRequest(request['id']),
                       style: FilledButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
@@ -456,88 +580,5 @@ class _EmployeeRequestsPageState extends State<EmployeeRequestsPage> with Single
       default:
         return Colors.grey;
     }
-  }
-}
-
-class LeaveRequest {
-  final String id;
-  final String employeeName;
-  final String employeeId;
-  final String leaveType;
-  final DateTime startDate;
-  final DateTime endDate;
-  final String reason;
-  final String status;
-  final DateTime submittedDate;
-
-  LeaveRequest({
-    required this.id,
-    required this.employeeName,
-    required this.employeeId,
-    required this.leaveType,
-    required this.startDate,
-    required this.endDate,
-    required this.reason,
-    required this.status,
-    required this.submittedDate,
-  });
-
-  LeaveRequest copyWith({
-    String? status,
-  }) {
-    return LeaveRequest(
-      id: id,
-      employeeName: employeeName,
-      employeeId: employeeId,
-      leaveType: leaveType,
-      startDate: startDate,
-      endDate: endDate,
-      reason: reason,
-      status: status ?? this.status,
-      submittedDate: submittedDate,
-    );
-  }
-}
-
-class DispatchRequest {
-  final String id;
-  final String employeeName;
-  final String employeeId;
-  final String purpose;
-  final String destination;
-  final bool vehicleRequired;
-  final DateTime departureDate;
-  final DateTime returnDate;
-  final String status;
-  final DateTime submittedDate;
-
-  DispatchRequest({
-    required this.id,
-    required this.employeeName,
-    required this.employeeId,
-    required this.purpose,
-    required this.destination,
-    required this.vehicleRequired,
-    required this.departureDate,
-    required this.returnDate,
-    required this.status,
-    required this.submittedDate,
-  });
-
-  DispatchRequest copyWith({
-    String? status,
-  }) {
-    return DispatchRequest(
-      id: id,
-      employeeName: employeeName,
-      employeeId: employeeId,
-      purpose: purpose,
-      destination: destination,
-      vehicleRequired: vehicleRequired,
-      departureDate: departureDate,
-      returnDate: returnDate,
-      status: status ?? this.status,
-      submittedDate: submittedDate,
-    );
   }
 }
